@@ -8,6 +8,10 @@ A blood alcohol content (BAC) simulator built for responsible drinking. Log your
 
 ---
 
+![SipWise screenshot](public/image.png)
+
+---
+
 ## Features
 
 - **Drink logging** — Log drinks with a name, volume, ABV, and actual start/finish times. Backdating is supported, so you can log a drink you already finished.
@@ -17,6 +21,12 @@ A blood alcohol content (BAC) simulator built for responsible drinking. Log your
 - **Sponsor theming** — CSS variable-driven theme system. Switch between Default, Heineken, Corona, and Black Label in one line of config.
 - **Responsive layout** — Three-column viewport layout on desktop (form | drink list | chart). Single-column stack on mobile. No page scrolling required on desktop.
 - **Persistent state** — Profile and drink session stored in `localStorage`. Survives page refresh.
+
+---
+
+## Privacy
+
+**No data ever leaves your device.** Your profile (age, sex, weight) and drink session are stored exclusively in your browser's `localStorage`. There is no backend, no database, no analytics, and no network requests made by the app itself. Clearing your browser data will erase everything.
 
 ---
 
@@ -33,6 +43,13 @@ A blood alcohol content (BAC) simulator built for responsible drinking. Log your
 
 ---
 
+## Prerequisites
+
+- **Node.js ≥ 18.18** (required by Next.js 15)
+- npm, yarn, or pnpm
+
+---
+
 ## Getting Started
 
 ```bash
@@ -43,6 +60,21 @@ npm run dev
 Open [http://localhost:3000](http://localhost:3000).
 
 On first load you'll be redirected to `/profile` to enter your age, sex, and weight. After saving, you're taken to `/drinks` where you can start logging.
+
+---
+
+## Deployment
+
+The easiest option is [Vercel](https://vercel.com) — import the repo and it deploys automatically with zero config.
+
+For self-hosting, build a production bundle and run it with Node:
+
+```bash
+npm run build
+npm start
+```
+
+Because the app has no backend or environment variables, any static or Node-capable host works (Vercel, Netlify, Railway, a plain VPS, etc.).
 
 ---
 
@@ -96,6 +128,17 @@ BrAC (mg/L) = BAC × 10000 / 2100           (2100:1 breath-blood ratio)
 
 Each 5-minute step absorbs ethanol linearly over the drink's duration, then subtracts the step's elimination from the running pool. This ensures drinks consumed later in a session are not over-metabolised.
 
+### Known model limitations
+
+The simulation is a reasonable approximation but intentionally simplified. Factors **not** accounted for:
+
+- **Food** — eating significantly slows absorption by delaying gastric emptying. The model assumes a fasted or lightly-fed state.
+- **Carbonation** — sparkling drinks (champagne, beer) are absorbed faster than still drinks at the same ABV.
+- **Absorption variability** — the model distributes absorption uniformly over the drink's duration. Real absorption follows a curve influenced by stomach contents and drink concentration.
+- **Individual tolerance** — chronic drinkers metabolise alcohol faster; the β values used are population averages.
+- **Medications and health conditions** — many drugs interact with alcohol metabolism and are not modelled.
+- **Breath-blood ratio variance** — the 2100:1 ratio is a legal standard. The physiological ratio varies between individuals and some evidential breath instruments use 2300:1.
+
 ---
 
 ## Theming
@@ -107,6 +150,14 @@ export const ACTIVE_THEME = "corona"; // "default" | "heineken" | "corona" | "bl
 ```
 
 Themes are defined as CSS custom property overrides in `app/globals.css` and applied via the `data-theme` attribute on the root element. Tailwind utility classes (`bg-primary`, `text-secondary`, etc.) resolve through `@theme inline` tokens.
+
+---
+
+## References
+
+- Widmark, E.M.P. (1932). *Die theoretischen Grundlagen und die praktische Verwendbarkeit der gerichtlich-medizinischen Alkoholbestimmung.* Urban & Schwarzenberg.
+- Dubowski, K.M. (1985). Absorption, distribution and elimination of alcohol: highway safety aspects. *Journal of Studies on Alcohol*, Supplement 10.
+- National Road Traffic Act 93 of 1996 (South Africa) — prescribed legal limits.
 
 ---
 
