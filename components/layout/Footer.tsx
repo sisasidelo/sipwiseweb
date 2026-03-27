@@ -20,7 +20,7 @@ export default function Footer() {
   };
 
   return (
-    <footer className="bg-primary text-white py-6 mt-10">
+    <footer className="bg-primary text-white py-3 shrink-0">
       <div className="container mx-auto text-center text-sm space-y-2">
         <p>
           © {new Date().getFullYear()}{" "}

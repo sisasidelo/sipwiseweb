@@ -16,7 +16,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
-      <div data-theme={theme} className="min-h-screen bg-bg text-text">
+      <div data-theme={theme} className="h-screen overflow-hidden bg-bg text-text">
         {children}
       </div>
     </ThemeContext.Provider>

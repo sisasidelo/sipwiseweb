@@ -10,7 +10,7 @@ import { addMinutesToIso, diffMinutes, roundTo } from "@/utils/time";
 export function simulateSessionBAC(
   profile: UserProfile,
   drinks: DrinkEntry[],
-  stepMinutes: number = 30
+  stepMinutes: number = 5
 ): SimulationResult {
   if (!profile.weightKg || !profile.sex) {
     throw new Error("Profile must include weight and sex for BAC simulation.");
@@ -19,7 +19,11 @@ export function simulateSessionBAC(
   // 1. Setup
   const metabolismRate = getMetabolismRate(profile);
   const r = DISTRIBUTION_RATIO[profile.sex] ?? DISTRIBUTION_RATIO.other;
-  const bodyWater = profile.weightKg * r * 1000; // in grams (kg → g)
+  const bodyWater = profile.weightKg * r * 1000; // g (Widmark volume of distribution)
+
+  // Pre-compute elimination per step:
+  // β (g/dL/hr) × step (hr) × V_d (dL) = grams metabolized per step
+  const eliminationPerStep = metabolismRate * (stepMinutes / 60) * (bodyWater / 100);
 
   // 2. Find simulation window
   const startTime = drinks.reduce(
@@ -35,9 +39,9 @@ export function simulateSessionBAC(
   // extend sim window for metabolism clearance (extra 12 hours buffer)
   const simEnd = addMinutesToIso(endTime, 12 * 60);
 
-  // 3. Initialize
+  // 3. Initialize — track the remaining ethanol pool, not cumulative total
   const snapshots: BACSnapshot[] = [];
-  let totalEthanolGrams = 0;
+  let ethanolPool = 0; // grams of unmetabolized ethanol currently in the body
 
   // 4. Time loop
   const totalMinutes = diffMinutes(startTime, simEnd);
@@ -45,52 +49,48 @@ export function simulateSessionBAC(
   for (let t = 0; t <= totalMinutes; t += stepMinutes) {
     const currentTime = addMinutesToIso(startTime, t);
 
-    // Absorption: add ethanol from drinks that are being consumed
+    // Absorption: add ethanol from drinks active during this step
     drinks.forEach((drink) => {
-      const drinkStart = drink.startTime;
       const drinkEnd = addMinutesToIso(drink.startTime, drink.durationMinutes);
-
-      if (currentTime >= drinkStart && currentTime <= drinkEnd) {
+      if (currentTime >= drink.startTime && currentTime <= drinkEnd) {
         const ethanolGrams = mlToGramsEthanol(drink.volumeMl, drink.abvPercent);
-        const gramsPerMinute = ethanolGrams / drink.durationMinutes;
-        totalEthanolGrams += gramsPerMinute * stepMinutes;
+        ethanolPool += (ethanolGrams / drink.durationMinutes) * stepMinutes;
       }
     });
 
-    // 5. Convert ethanol grams → BAC
-    let bac = (totalEthanolGrams * 100) / bodyWater;
+    // Metabolism: linear (Widmark) elimination for this step only
+    ethanolPool = Math.max(0, ethanolPool - eliminationPerStep);
 
-    // 6. Apply metabolism (linear elimination)
-    const hoursSinceStart = t / 60;
-    const elimination = metabolismRate * hoursSinceStart;
-    bac = Math.max(0, bac - elimination);
+    // 5. Convert pool → BAC and BrAC
+    const bac = roundTo((ethanolPool * 100) / bodyWater, 4);
+    const brac = roundTo(bacToBrac(bac), 4);
 
-    // 7. Convert to BrAC
-    const brac = bacToBrac(bac);
-
-    // 8. Save snapshot
     snapshots.push({
       timestamp: currentTime,
-      bac: roundTo(bac, 4),
-      brac: roundTo(brac, 3),
+      bac,
+      brac,
       isLegal: bac <= LEGAL_LIMITS.BAC,
     });
 
-    // Stop early if fully sober (and beyond drinking end)
+    // Stop early once fully sober and past last drink
     if (bac <= 0 && currentTime > endTime) break;
   }
 
-  // 9. Summary
+  // 6. Summary
   const peak = snapshots.reduce(
     (max, snap) => (snap.bac > max.bac ? snap : max),
     snapshots[0]
   );
+  const peakIndex = snapshots.indexOf(peak);
 
+  // Legal limit: first crossing below limit after the peak
   const legalLimitSnap =
-    snapshots.find((s) => s.bac <= LEGAL_LIMITS.BAC) ?? null;
+    snapshots.slice(peakIndex).find((s) => s.bac <= LEGAL_LIMITS.BAC) ?? null;
 
+  // Sober: first zero-BAC after the peak
   const soberSnap =
-    snapshots.find((s) => s.bac <= 0) ?? snapshots[snapshots.length - 1];
+    snapshots.slice(peakIndex).find((s) => s.bac <= 0) ??
+    snapshots[snapshots.length - 1];
 
   return {
     snapshots,

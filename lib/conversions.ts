@@ -12,12 +12,12 @@ export function mlToGramsEthanol(volumeMl: number, abvPercent: number): number {
  * Formula: BrAC = (BAC * 1000) / (BREATH_BLOOD_RATIO / 100)
  */
 export function bacToBrac(bac: number): number {
-  return (bac * 1000) / (BREATH_BLOOD_RATIO / 100);
+  return (bac * 10000) / BREATH_BLOOD_RATIO;
 }
 
 /**
  * Convert BrAC (mg/L breath) → BAC (g/100ml blood).
  */
 export function bracToBac(brac: number): number {
-  return (brac * (BREATH_BLOOD_RATIO / 100)) / 1000;
+  return (brac * BREATH_BLOOD_RATIO) / 10000;
 }

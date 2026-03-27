@@ -9,7 +9,7 @@ export default function ProfileForm() {
   const router = useRouter();
 
   const [profile, setProfile] = useState<UserProfile>({
-    age: 0,
+    age: undefined,
     sex: "male",
     weightKg: 0,
     customMetabolismRate: undefined,
@@ -55,7 +55,7 @@ export default function ProfileForm() {
         <input
           type="number"
           name="age"
-          value={profile.age}
+          value={profile.age ?? ""}
           onChange={handleChange}
           className="w-full border border-primary/40 rounded-lg px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/50 bg-bg text-text transition"
           required
@@ -85,28 +85,12 @@ export default function ProfileForm() {
         <input
           type="number"
           name="weightKg"
-          value={profile.weightKg}
+          value={profile.weightKg || ""}
           onChange={handleChange}
           className="w-full border border-primary/40 rounded-lg px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/50 bg-bg text-text transition"
           required
           min={30}
           max={250}
-        />
-      </div>
-
-      {/* Optional metabolism override */}
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Custom Metabolism Rate (g/dL/hr, optional)
-        </label>
-        <input
-          type="number"
-          step="0.001"
-          name="customMetabolismRate"
-          value={profile.customMetabolismRate ?? ""}
-          onChange={handleChange}
-          className="w-full border border-primary/40 rounded-lg px-3 py-2 focus:border-primary focus:ring-2 focus:ring-primary/50 bg-bg text-text transition"
-          placeholder="Leave blank for automatic"
         />
       </div>
 

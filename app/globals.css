@@ -1,33 +1,46 @@
 @import "tailwindcss";
 
-/* Default theme */
+/*
+  Tailwind v4: @theme inline tells Tailwind to generate utility classes
+  (bg-primary, text-primary, border-primary, etc.) whose CSS output
+  references these CSS variables directly. The actual variable values
+  are controlled by the [data-theme] rules below, enabling runtime theming.
+*/
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-secondary: var(--color-secondary);
+  --color-bg: var(--color-bg);
+  --color-text: var(--color-text);
+}
+
+/* Default */
 :root {
-  --color-primary: hsl(220, 90%, 55%); /* Blue */
-  --color-secondary: hsl(160, 60%, 45%); /* Teal */
-  --color-bg: hsl(0, 0%, 100%); /* White */
-  --color-text: hsl(210, 10%, 20%); /* Dark Gray */
+  --color-primary: hsl(220, 90%, 55%);
+  --color-secondary: hsl(160, 60%, 45%);
+  --color-bg: hsl(0, 0%, 100%);
+  --color-text: hsl(210, 10%, 20%);
 }
 
 /* 🍺 Heineken */
 [data-theme="heineken"] {
-  --color-primary: #008200; /* Heineken Green */
-  --color-secondary: #e2231a; /* Red Star */
-  --color-bg: #ffffff;
+  --color-primary: #007a00;
+  --color-secondary: #e2231a;
+  --color-bg: #f4fff4;
   --color-text: #111111;
 }
 
 /* 🌞 Corona */
 [data-theme="corona"] {
-  --color-primary: #002d62; /* Dark Blue */
-  --color-secondary: #ffcc00; /* Golden Yellow */
-  --color-bg: #fffaf0; /* Off white */
+  --color-primary: #002d62;
+  --color-secondary: #ffcc00;
+  --color-bg: #fffaf0;
   --color-text: #222222;
 }
 
 /* 🥃 Black Label */
 [data-theme="blacklabel"] {
-  --color-primary: #000000; /* Black */
-  --color-secondary: #ffd700; /* Gold */
-  --color-bg: #111111; /* Dark */
-  --color-text: #f5f5f5; /* Light */
+  --color-primary: #111111;
+  --color-secondary: #ffd700;
+  --color-bg: #1a1a1a;
+  --color-text: #f5f5f5;
 }
